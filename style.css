@@ -7,9 +7,14 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 #live-title { font-size: 16px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #channel-name { font-size: 12px; color: #aaa; margin-left: 8px; }
 
-.header-right { display: flex; align-items: center; gap: 1.5em; }
+.header-right { display: flex; align-items: center; gap: 1.2em; }
 
-/* 音量スライダー */
+/* YouTubeを開くボタンのカラー */
+.btn-open-yt { background-color: #2b2b2b; border-color: #444; font-size: 13px; padding: 7px 14px; color: #ff4b4b; }
+.btn-open-yt:hover:not(:disabled) { background-color: #3a3a3a; border-color: #666; color: #ff6b6b; }
+.btn-open-yt:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* 音量スライダーのデザイン */
 .volume-container { display: flex; align-items: center; gap: 8px; background: #222; padding: 6px 12px; border-radius: 20px; border: 1px solid #333; }
 .volume-icon { font-size: 14px; user-select: none; }
 #volume-slider { -webkit-appearance: none; width: 80px; height: 4px; background: #555; border-radius: 2px; outline: none; cursor: pointer; }
@@ -29,7 +34,7 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 .video-area { flex: 1; height: 100%; position: relative; transition: all 0.3s ease; overflow: hidden; }
 #youtube-player { width: 100%; height: 100%; border: none; display: block; }
 
-/* 誤クリック防止 */
+/* 誤クリック防止の透明シールド */
 .video-click-shield { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; background: transparent; cursor: default; }
 
 /* 共通サイドコンテナ */

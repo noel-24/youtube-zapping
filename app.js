@@ -2,7 +2,7 @@ const API_KEY = 'AIzaSyCK_TwOWPMLtv7ThujUlrI3_sTtADEJ6lc';
 
 let ONLINE_LIVES = []; 
 let currentIndex = 0;
-let player = null; // YouTubeプレイヤーのインスタンス保持用
+let player = null; 
 
 const chatContainer = document.getElementById('chat-container');
 const sideWrapper = document.getElementById('side-wrapper');
@@ -10,13 +10,13 @@ const liveListUl = document.getElementById('live-list-ul');
 const liveTitle = document.getElementById('live-title');
 const loadingOverlay = document.getElementById('loading');
 const volumeSlider = document.getElementById('volume-slider');
+const openYtBtn = document.getElementById('open-yt-btn');
 
 const paneList = document.getElementById('pane-list');
 const paneChat = document.getElementById('pane-chat');
 const listTab = document.getElementById('list-tab');
 const chatTab = document.getElementById('chat-tab');
 
-// YouTube Iframe APIが準備完了したら自動で呼ばれる関数
 function onYouTubeIframeAPIReady() {
     fetchOnlineLives();
 }
@@ -24,6 +24,7 @@ function onYouTubeIframeAPIReady() {
 async function fetchOnlineLives() {
     try {
         loadingOverlay.classList.remove('hidden');
+        openYtBtn.disabled = true;
         const response = await fetch('channels.json');
         if (!response.ok) throw new Error('channels.json の読み込み失敗');
         const channelIds = await response.json();
@@ -95,6 +96,7 @@ function showNoLive() {
     if (player) { player.destroy(); player = null; }
     chatContainer.innerHTML = "";
     liveListUl.innerHTML = "<li style='color: #888;'>配信中の番組はありません</li>";
+    openYtBtn.disabled = true; // 🟢
 }
 
 function createListView() {
@@ -114,7 +116,6 @@ function createListView() {
     });
 }
 
-// 🟢 プレイヤーの生成または動画の載せ替え処理
 function initOrUpdatePlayer(index) {
     if (ONLINE_LIVES.length === 0) return;
     
@@ -126,42 +127,55 @@ function initOrUpdatePlayer(index) {
     const live = ONLINE_LIVES[currentIndex];
     
     liveTitle.innerHTML = `${live.title} <span id="channel-name">[${live.channelTitle}]</span>`;
+    openYtBtn.disabled = false;
 
-    // チャット欄はこれまで通りiframeで即座に入れ替え
     const chatUrl = `https://www.youtube.com/live_chat?v=${live.videoId}&embed_domain=${window.location.hostname}`;
     chatContainer.innerHTML = `<iframe src="${chatUrl}"></iframe>`;
 
-    // API経由で音量を制御するため、YT.Playerオブジェクトを作成（または動画をロード）
     const currentVolume = volumeSlider.value;
 
     if (!player) {
-        // 初回：プレイヤーオブジェクトを作成
         player = new YT.Player('youtube-player', {
             videoId: live.videoId,
             playerVars: {
                 autoplay: 1,
-                mute: 0, // 音量をスライダー側で制御するためミュートはオフ
-                controls: 0, // 本家のコントロールバーも非表示に
+                mute: 0,
+                controls: 0, 
                 rel: 0,
                 modestbranding: 1
             },
             events: {
                 onReady: (event) => {
+                    event.target.unMute(); 
                     event.target.setVolume(currentVolume);
                     event.target.playVideo();
+                },
+                onStateChange: (event) => {
+                    if (event.data === YT.PlayerState.PLAYING) {
+                        event.target.unMute();
+                        event.target.setVolume(volumeSlider.value);
+                    }
                 }
             }
         });
     } else {
-        // 2回目以降：既存のプレイヤーの動画だけを入れ替える（超高速・シームレス）
         player.loadVideoById({ videoId: live.videoId });
+        player.unMute();
         player.setVolume(currentVolume);
     }
 }
 
-// 🟢 音量スライダーの変更イベント（動的にYouTubeの音量を変える）
+// YouTube本家を開くボタンのクリックイベント
+openYtBtn.addEventListener('click', () => {
+    if (ONLINE_LIVES.length === 0) return;
+    const currentLive = ONLINE_LIVES[currentIndex];
+    const youtubeUrl = `https://www.youtube.com/watch?v=${currentLive.videoId}`;
+    window.open(youtubeUrl, '_blank');
+});
+
 volumeSlider.addEventListener('input', (e) => {
     if (player && typeof player.setVolume === 'function') {
+        player.unMute();
         player.setVolume(e.target.value);
     }
 });
