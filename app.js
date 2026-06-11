@@ -2,19 +2,24 @@ const API_KEY = 'AIzaSyCK_TwOWPMLtv7ThujUlrI3_sTtADEJ6lc';
 
 let ONLINE_LIVES = []; 
 let currentIndex = 0;
+let player = null; // YouTubeプレイヤーのインスタンス保持用
 
-const playerContainer = document.getElementById('video-player-container');
 const chatContainer = document.getElementById('chat-container');
 const sideWrapper = document.getElementById('side-wrapper');
 const liveListUl = document.getElementById('live-list-ul');
 const liveTitle = document.getElementById('live-title');
 const loadingOverlay = document.getElementById('loading');
+const volumeSlider = document.getElementById('volume-slider');
 
-// パネルとタブの要素取得
 const paneList = document.getElementById('pane-list');
 const paneChat = document.getElementById('pane-chat');
 const listTab = document.getElementById('list-tab');
 const chatTab = document.getElementById('chat-tab');
+
+// YouTube Iframe APIが準備完了したら自動で呼ばれる関数
+function onYouTubeIframeAPIReady() {
+    fetchOnlineLives();
+}
 
 async function fetchOnlineLives() {
     try {
@@ -31,10 +36,8 @@ async function fetchOnlineLives() {
         const playlistPromises = channelIds.map(async (channelId) => {
             const uploadPlaylistId = channelId.replace(/^UC/, 'UU');
             const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadPlaylistId}&maxResults=1&key=${API_KEY}`;
-            
             const res = await fetch(playlistUrl);
             const data = await res.json();
-            
             if (data.items && data.items.length > 0) {
                 return data.items[0].snippet.resourceId.videoId;
             }
@@ -49,9 +52,7 @@ async function fetchOnlineLives() {
         }
 
         const videoIdsParam = videoIds.join(',');
-        const videoUrl = `https://www.youtube.com/embed/..?` // ダミー、下の本処理用
         const videoApiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${videoIdsParam}&key=${API_KEY}`;
-        
         const videoRes = await fetch(videoApiUrl);
         const videoData = await videoRes.json();
 
@@ -77,7 +78,7 @@ async function fetchOnlineLives() {
 
         if (ONLINE_LIVES.length > 0) {
             createListView();
-            updateStage(0);
+            initOrUpdatePlayer(0);
         } else {
             showNoLive();
         }
@@ -91,7 +92,7 @@ async function fetchOnlineLives() {
 function showNoLive() {
     loadingOverlay.classList.add('hidden');
     liveTitle.textContent = "😢 現在ライブ配信中のチャンネルはありません。";
-    playerContainer.innerHTML = "";
+    if (player) { player.destroy(); player = null; }
     chatContainer.innerHTML = "";
     liveListUl.innerHTML = "<li style='color: #888;'>配信中の番組はありません</li>";
 }
@@ -107,13 +108,14 @@ function createListView() {
             <div class="item-channel">📺 ${live.channelTitle}</div>
         `;
         li.addEventListener('click', () => {
-            updateStage(index);
+            initOrUpdatePlayer(index);
         });
         liveListUl.appendChild(li);
     });
 }
 
-function updateStage(index) {
+// 🟢 プレイヤーの生成または動画の載せ替え処理
+function initOrUpdatePlayer(index) {
     if (ONLINE_LIVES.length === 0) return;
     
     document.querySelectorAll('.live-item').forEach(el => el.classList.remove('active'));
@@ -125,20 +127,66 @@ function updateStage(index) {
     
     liveTitle.innerHTML = `${live.title} <span id="channel-name">[${live.channelTitle}]</span>`;
 
-    const videoUrl = `https://www.youtube.com/embed/${live.videoId}?autoplay=1&mute=1`;
+    // チャット欄はこれまで通りiframeで即座に入れ替え
     const chatUrl = `https://www.youtube.com/live_chat?v=${live.videoId}&embed_domain=${window.location.hostname}`;
-
-    playerContainer.innerHTML = `<iframe src="${videoUrl}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
     chatContainer.innerHTML = `<iframe src="${chatUrl}"></iframe>`;
+
+    // API経由で音量を制御するため、YT.Playerオブジェクトを作成（または動画をロード）
+    const currentVolume = volumeSlider.value;
+
+    if (!player) {
+        // 初回：プレイヤーオブジェクトを作成
+        player = new YT.Player('youtube-player', {
+            videoId: live.videoId,
+            playerVars: {
+                autoplay: 1,
+                mute: 0, // 音量をスライダー側で制御するためミュートはオフ
+                controls: 0, // 本家のコントロールバーも非表示に
+                rel: 0,
+                modestbranding: 1
+            },
+            events: {
+                onReady: (event) => {
+                    event.target.setVolume(currentVolume);
+                    event.target.playVideo();
+                }
+            }
+        });
+    } else {
+        // 2回目以降：既存のプレイヤーの動画だけを入れ替える（超高速・シームレス）
+        player.loadVideoById({ videoId: live.videoId });
+        player.setVolume(currentVolume);
+    }
 }
 
-// 🟢 共通サイドコンテナの開閉・切り替えロジック
+// 🟢 音量スライダーの変更イベント（動的にYouTubeの音量を変える）
+volumeSlider.addEventListener('input', (e) => {
+    if (player && typeof player.setVolume === 'function') {
+        player.setVolume(e.target.value);
+    }
+});
+
+// シャッフルボタン
+document.getElementById('shuffle-btn').addEventListener('click', () => {
+    if (ONLINE_LIVES.length <= 1) return;
+    let randomIndex;
+    do {
+        randomIndex = Math.floor(Math.random() * ONLINE_LIVES.length);
+    } while (randomIndex === currentIndex);
+    initOrUpdatePlayer(randomIndex);
+});
+
+// リログボタン
+document.getElementById('relog-btn').addEventListener('click', () => {
+    fetchOnlineLives();
+});
+
+// サイドコンテナの開閉・切り替えロジック
 function toggleSideContainer(targetType) {
     const isContainerOpen = sideWrapper.classList.contains('open');
     const isCurrentActive = (targetType === 'list' && listTab.classList.contains('active')) || 
                             (targetType === 'chat' && chatTab.classList.contains('active'));
 
-    // 1. すでに開いていて、かつ「同じタブ」が押されたら閉じる
     if (isContainerOpen && isCurrentActive) {
         sideWrapper.classList.remove('open');
         listTab.classList.remove('active');
@@ -146,7 +194,6 @@ function toggleSideContainer(targetType) {
         return;
     }
 
-    // 2. タブのハイライトの切り替え
     if (targetType === 'list') {
         listTab.classList.add('active');
         chatTab.classList.remove('active');
@@ -159,28 +206,8 @@ function toggleSideContainer(targetType) {
         paneList.classList.add('hidden');
     }
 
-    // 3. コンテナを確実に開く
     sideWrapper.classList.add('open');
 }
 
-// 各タブのクリックイベント登録
 listTab.addEventListener('click', () => toggleSideContainer('list'));
 chatTab.addEventListener('click', () => toggleSideContainer('chat'));
-
-// シャッフルボタン
-document.getElementById('shuffle-btn').addEventListener('click', () => {
-    if (ONLINE_LIVES.length <= 1) return;
-    let randomIndex;
-    do {
-        randomIndex = Math.floor(Math.random() * ONLINE_LIVES.length);
-    } while (randomIndex === currentIndex);
-    updateStage(randomIndex);
-});
-
-// リログボタン
-document.getElementById('relog-btn').addEventListener('click', () => {
-    fetchOnlineLives();
-});
-
-// 起動
-fetchOnlineLives();

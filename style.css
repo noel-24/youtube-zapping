@@ -1,182 +1,59 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
-body { 
-    font-family: 'Helvetica Neue', Arial, sans-serif; 
-    background-color: #111; 
-    color: #fff; 
-    height: 100vh; 
-    display: flex; 
-    flex-direction: column; 
-    overflow: hidden;
-}
+body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #111; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
 /* ヘッダー構成 */
-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    padding: 12px 20px; 
-    background-color: #1a1a1a; 
-    border-bottom: 1px solid #333; 
-    height: 60px; 
-    z-index: 10; 
-    flex-shrink: 0;
-}
-.header-left { display: flex; align-items: center; gap: 15px; max-width: 70%; }
+header { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background-color: #1a1a1a; border-bottom: 1px solid #333; height: 60px; z-index: 10; flex-shrink: 0; }
+.header-left { display: flex; align-items: center; gap: 15px; max-width: 50%; }
 #live-title { font-size: 16px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #channel-name { font-size: 12px; color: #aaa; margin-left: 8px; }
 
-.header-right { display: flex; align-items: center; gap: 1em; }
+.header-right { display: flex; align-items: center; gap: 1.5em; }
+
+/* 音量スライダー */
+.volume-container { display: flex; align-items: center; gap: 8px; background: #222; padding: 6px 12px; border-radius: 20px; border: 1px solid #333; }
+.volume-icon { font-size: 14px; user-select: none; }
+#volume-slider { -webkit-appearance: none; width: 80px; height: 4px; background: #555; border-radius: 2px; outline: none; cursor: pointer; }
+#volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: #1f3a60; border-radius: 50%; border: 2px solid #3b6ea8; transition: background 0.2s; }
+#volume-slider::-webkit-slider-thumb:hover { background: #3b6ea8; }
 
 /* ボタン群 */
-.btn { background-color: #333; color: white; border: 1px solid #444; padding: 8px 16px; font-size: 14px; cursor: pointer; border-radius: 4px; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+.btn { background-color: #333; color: white; border: 1px solid #444; padding: 8px 16px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
 .btn:hover { background-color: #444; border-color: #666; }
 .btn-header { font-size: 14px; padding: 6px 12px; background-color: #1f3a60; border-color: #2c5282; }
 .btn-header:hover { background-color: #2b5288; border-color: #3b6ea8; }
 
 /* メインコンテンツエリア */
-.main-container { 
-    display: flex; 
-    flex: 1; 
-    position: relative; 
-    overflow: hidden;
-    background-color: #000; 
-    width: 100%; 
-}
+.main-container { display: flex; flex: 1; position: relative; overflow: hidden; background-color: #000; width: 100%; }
 
 /* 動画エリア */
-.video-area { 
-    flex: 1; 
-    height: 100%; 
-    position: relative; 
-    transition: all 0.3s ease; 
-    overflow: hidden;
-}
-iframe { width: 100%; height: 100%; border: none; display: block; }
+.video-area { flex: 1; height: 100%; position: relative; transition: all 0.3s ease; overflow: hidden; }
+#youtube-player { width: 100%; height: 100%; border: none; display: block; }
 
+/* 誤クリック防止 */
+.video-click-shield { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; background: transparent; cursor: default; }
 
-/* 共通サイドコンテナ（親枠） */
-.side-container-wrapper {
-    display: flex;
-    align-items: flex-start;
-    height: 100%;
-    width: 30px;
-    transition: width 0.3s ease;
-    position: relative;
-    z-index: 100;
-    overflow: hidden;
-}
-.side-container-wrapper.open {
-    width: 380px;
-}
-
-/* タブボタンを縦に並べるコンテナ */
-.side-tabs-container {
-    display: flex;
-    flex-direction: column;
-    gap: 8px; 
-    margin-top: 20px;
-    flex-shrink: 0;
-}
-
-/* 共通タブスタイル */
-.side-tab {
-    background-color: #222;
-    border: 1px solid #333;
-    border-right: none;
-    color: #fff;
-    width: 30px;
-    padding: 12px 0;
-    text-align: center;
-    cursor: pointer;
-    border-radius: 8px 0 0 8px;
-    font-size: 11px;
-    line-height: 1.2;
-    box-shadow: -3px 2px 5px rgba(0,0,0,0.3);
-    user-select: none;
-    transition: background 0.2s;
-}
+/* 共通サイドコンテナ */
+.side-container-wrapper { display: flex; align-items: flex-start; height: 100%; width: 30px; transition: width 0.3s ease; position: relative; z-index: 100; overflow: hidden; }
+.side-container-wrapper.open { width: 395px; }
+.side-tabs-container { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; flex-shrink: 0; }
+.side-tab { background-color: #222; border: 1px solid #333; border-right: none; color: #fff; width: 30px; padding: 12px 0; text-align: center; cursor: pointer; border-radius: 8px 0 0 8px; font-size: 11px; line-height: 1.4; box-shadow: -3px 2px 5px rgba(0,0,0,0.3); user-select: none; transition: background 0.2s; }
 .side-tab:hover { background-color: #333; }
-.side-tab.active {
-    background-color: #1f3a60;
-    border-color: #2c5282;
-    font-weight: bold;
-}
-
-/* コンテンツを表示するボックス */
-.side-content-box {
-    width: 350px;
-    height: 100%;
-    background-color: #181818;
-    border-left: 1px solid #333;
-    margin-left: auto; 
-    flex-shrink: 0;
-    transition: opacity 0.2s ease;
-    opacity: 0;
-    pointer-events: none;
-    overflow: hidden;
-}
-.side-container-wrapper.open .side-content-box {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-/* 各パネル（一覧 / チャット）共通 */
-.side-pane {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-}
-
-/* 配信一覧内のデザイン */
-#pane-list { 
-    padding: 15px; 
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-.list-title { 
-    font-size: 16px; 
-    font-weight: bold; 
-    margin-bottom: 15px; 
-    color: #aaa; 
-    border-bottom: 1px solid #333; 
-    padding-bottom: 8px;
-    flex-shrink: 0;
-}
-
-/* 配信中リストのスクロールエリア */
-#live-list-ul { 
-    list-style: none; 
-    flex: 1;
-    overflow-y: auto;
-    padding-right: 5px;
-}
-
-/* スクロールバーを細くして目立たなくする設定 */
-#live-list-ul::-webkit-scrollbar {
-    width: 6px;
-}
-#live-list-ul::-webkit-scrollbar-track {
-    background: #181818;
-}
-#live-list-ul::-webkit-scrollbar-thumb {
-    background: #333;
-    border-radius: 3px;
-}
-#live-list-ul::-webkit-scrollbar-thumb:hover {
-    background: #444;
-}
-
+.side-tab.active { background-color: #1f3a60; border-color: #2c5282; font-weight: bold; }
+.side-content-box { width: 350px; height: 100%; background-color: #181818; border-left: 1px solid #333; margin-left: auto; flex-shrink: 0; transition: opacity 0.2s ease; opacity: 0; pointer-events: none; overflow: hidden; }
+.side-container-wrapper.open .side-content-box { opacity: 1; pointer-events: auto; }
+.side-pane { width: 100%; height: 100%; overflow: hidden; }
+#pane-list { padding: 15px; display: flex; flex-direction: column; height: 100%; }
+.list-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #aaa; border-bottom: 1px solid #333; padding-bottom: 8px; flex-shrink: 0; }
+#live-list-ul { list-style: none; flex: 1; overflow-y: auto; padding-right: 5px; }
+#live-list-ul::-webkit-scrollbar { width: 6px; }
+#live-list-ul::-webkit-scrollbar-track { background: #181818; }
+#live-list-ul::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 .live-item { padding: 10px; border-radius: 6px; background: #222; margin-bottom: 10px; cursor: pointer; transition: background 0.2s; border: 1px solid #333; }
 .live-item:hover { background: #2b5288; border-color: #3b6ea8; }
 .live-item.active { background: #1f3a60; border-color: #2c5282; font-weight: bold; }
 .item-title { font-size: 13px; color: #fff; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px; }
 .item-channel { font-size: 11px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-/* チャット用スタイル */
-.chat-area, .chat-area iframe { width: 100%; height: 100%; overflow: hidden; }
-
-/* ローディング表示 */
+.chat-area { width: 100%; height: 100%; overflow: hidden; }
+.chat-area iframe { width: 100%; height: 100%; border: none; }
 .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; font-size: 18px; z-index: 50; }
 .hidden { display: none !important; }

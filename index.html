@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Live Zapping Pro</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
 
@@ -14,7 +15,11 @@
         </div>
         
         <div class="header-right">
-            <button class="btn btn-header" id="shuffle-btn" title="ランダムにザッピング">Shuffle</button>
+            <div class="volume-container">
+                <span class="volume-icon">🔊</span>
+                <input type="range" id="volume-slider" min="0" max="100" value="50" title="音量調整">
+            </div>
+            <button class="btn btn-header" id="shuffle-btn" title="ランダムにザッピング">shuffle</button>
             <button class="btn btn-header" id="relog-btn" title="配信状況を再読み込み">Refresh</button>
         </div>
     </header>
@@ -22,25 +27,26 @@
     <div class="main-container">
         <div class="loading-overlay" id="loading">現在ライブ配信中の番組を探しています...</div>
 
-        <div class="video-area" id="video-player-container"></div>
+        <div class="video-area">
+            <div class="video-click-shield"></div>
+            <div id="youtube-player"></div>
+        </div>
 
         <div class="side-container-wrapper" id="side-wrapper">
-            
             <div class="side-tabs-container">
-                <div class="side-tab" id="list-tab" data-target="list">配<br>信<br>中</div>
-                <div class="side-tab" id="chat-tab" data-target="chat">チ<br>ャ<br>ッ<br>ト</div>
+                <div class="side-tab" id="list-tab" data-target="list">📡<br>配<br>信<br>中</div>
+                <div class="side-tab" id="chat-tab" data-target="chat">💬<br>チ<br>ャ<br>ッ<br>ト</div>
             </div>
 
             <div class="side-content-box">
                 <div class="side-pane hidden" id="pane-list">
-                    <div class="list-title">配信中一覧</div>
+                    <div class="list-title">📡 配信中の一覧</div>
                     <ul id="live-list-ul"></ul>
                 </div>
                 <div class="side-pane hidden" id="pane-chat">
                     <div class="chat-area" id="chat-container"></div>
                 </div>
             </div>
-
         </div>
     </div>
 
