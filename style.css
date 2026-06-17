@@ -39,12 +39,12 @@ header { display: flex; justify-content: space-between; align-items: center; pad
 
 /* 共通サイドコンテナ */
 .side-container-wrapper { display: flex; align-items: flex-start; height: 100%; width: 30px; transition: width 0.3s ease; position: relative; z-index: 100; overflow: hidden; }
-.side-container-wrapper.open { width: 395px; }
+.side-container-wrapper.open { width: 380px; }
 .side-tabs-container { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; flex-shrink: 0; }
 .side-tab { background-color: #222; border: 1px solid #333; border-right: none; color: #fff; width: 30px; padding: 12px 0; text-align: center; cursor: pointer; border-radius: 8px 0 0 8px; font-size: 11px; line-height: 1.4; box-shadow: -3px 2px 5px rgba(0,0,0,0.3); user-select: none; transition: background 0.2s; }
 .side-tab:hover { background-color: #333; }
 .side-tab.active { background-color: #1f3a60; border-color: #2c5282; font-weight: bold; }
-.side-content-box { width: 350px; height: 100%; background-color: #181818; border-left: 1px solid #333; margin-left: auto; flex-shrink: 0; transition: opacity 0.2s ease; opacity: 0; pointer-events: none; overflow: hidden; }
+.side-content-box { width: 350px; height: 100%; background-color: #181818; border-left: 1px solid #333; flex-shrink: 0; transition: opacity 0.2s ease; opacity: 0; pointer-events: none; overflow: hidden; }
 .side-container-wrapper.open .side-content-box { opacity: 1; pointer-events: auto; }
 .side-pane { width: 100%; height: 100%; overflow: hidden; }
 #pane-list { padding: 15px; display: flex; flex-direction: column; height: 100%; }
